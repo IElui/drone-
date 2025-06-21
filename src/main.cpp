@@ -3,8 +3,8 @@
 #include "esp_camera.h"
 #include "esp_http_server.h"
 
-const char* SSID ="Beautiful gemini";
-const char* password ="ISGEMINI" ;
+const char* SSID ="TP-Link_A077";
+const char* password ="64803708" ;
 
 // define the frequency of the motor
 const int freq = 830; 
@@ -80,16 +80,16 @@ void setup(){
   }
 
   // Connect to Wi-Fi
+  WiFi.disconnect();
   WiFi.begin(SSID, password);
-  WiFi.setSleep(false);
-  int res = WiFi.status();
-  Serial.println(res);
-  while (res != WL_CONNECTED) {
+  Serial.print("Connecting to WiFi");
+  while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
-  Serial.println("");
-  Serial.println("WiFi connected");
+  Serial.println("\nWiFi connected!");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
 
   // Start streaming web server
   startCameraServer();
@@ -99,8 +99,16 @@ void setup(){
 
 }
 void loop(){
-  
-  digitalWrite(flashPin,HIGH);
+  // Serial.println(WiFi.localIP());
+  // if (WiFi.status() != WL_CONNECTED) {
+  //   Serial.println("WiFi lost. Reconnecting...");
+  //   WiFi.disconnect();
+  //   WiFi.begin(SSID, password);
+  //   delay(1000);
+  // }
+
+  //digitalWrite(flashPin,HIGH);
+
 }
 
 void startCameraServer() {
@@ -123,9 +131,14 @@ void startCameraServer() {
 
   Serial.printf("Starting web server on port: '%d'\n", config.server_port);
   if (httpd_start(&camera_httpd, &config) == ESP_OK) {
-    httpd_register_uri_handler(camera_httpd, &index_uri);
+    Serial.printf("Now registering URIs...\n");
+    auto url_res = httpd_register_uri_handler(camera_httpd, &index_uri);
+    delay(50);
+    Serial.printf(url_res == ESP_OK ? "URI '/' registered successfully\n" : "Failed to register URI '/'\n");
     httpd_register_uri_handler(camera_httpd, &stream_uri);
-  }
+  }else{
+    Serial.printf("Error starting server!\n");
+  } delay(50);
 }
 
 esp_err_t stream_handler(httpd_req_t *req) {
