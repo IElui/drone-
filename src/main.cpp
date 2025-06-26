@@ -3,8 +3,8 @@
 #include "esp_camera.h"
 #include "esp_http_server.h"
 
-const char* SSID ="TP-Link_A077";
-const char* password ="64803708" ;
+const char* SSID ="ESP32-CAM" ;
+const char* password ="12345678" ;
 
 // define the frequency of the motor
 const int freq = 830; 
@@ -35,6 +35,7 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 #define PCLK_GPIO_NUM  22
 
 #define flashPin 4
+#define CAMERA_MODEL_AI_THINKER
 
 // function configuration
 void startCameraServer();
@@ -80,34 +81,23 @@ void setup(){
   }
 
   // Connect to Wi-Fi
-  WiFi.disconnect();
-  WiFi.begin(SSID, password);
-  Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+  if (!WiFi.softAP(SSID, password)) {
+    Serial.println("WiFi AP failed to start");
+    return;
   }
-  Serial.println("\nWiFi connected!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  IPAddress myIP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(myIP);
 
   // Start streaming web server
   startCameraServer();
 
   Serial.print("Camera Stream Ready! Go to: http://");
-  Serial.print(WiFi.localIP());
+  Serial.print(myIP);
 
 }
 void loop(){
-  // Serial.println(WiFi.localIP());
-  // if (WiFi.status() != WL_CONNECTED) {
-  //   Serial.println("WiFi lost. Reconnecting...");
-  //   WiFi.disconnect();
-  //   WiFi.begin(SSID, password);
-  //   delay(1000);
-  // }
-
-  //digitalWrite(flashPin,HIGH);
+  
 
 }
 
