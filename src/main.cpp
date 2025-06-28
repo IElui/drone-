@@ -2,9 +2,13 @@
 #include <WiFi.h>
 #include "esp_camera.h"
 #include "esp_http_server.h"
+#include "IMU.h"
 
-const char* SSID ="TP-Link_A077";
-const char* password ="64803708" ;
+const char* SSID ="R";
+const char* password ="12345678" ;
+
+
+// try to set the PWM channel
 
 // define the frequency of the motor
 const int freq = 830; 
@@ -35,13 +39,17 @@ static const char* _STREAM_PART = "Content-Type: image/jpeg\r\nContent-Length: %
 #define PCLK_GPIO_NUM  22
 
 #define flashPin 4
+#define LEDPin 2
 
 // function configuration
 void startCameraServer();
 
 void setup(){
+  setUart();
+  Serial.begin(115200);
   pinMode(flashPin,OUTPUT);
-
+  pinMode(LEDPin,OUTPUT);
+  digitalWrite(LEDPin,LOW);
   Serial.begin(115200);
   Serial.setDebugOutput(true);
   camera_config_t Camera;
@@ -63,9 +71,9 @@ void setup(){
   Serial.println("cameera config success");
   if(psramFound()){
     Serial.println("found psram");
-    Camera.frame_size = FRAMESIZE_UXGA;
-    Camera.jpeg_quality = 10;
-    Camera.fb_count = 2;
+    Camera.frame_size = FRAMESIZE_SVGA;
+    Camera.jpeg_quality = 12;
+    Camera.fb_count = 1;
   } else {
     Serial.println("connot");
     Camera.frame_size = FRAMESIZE_SVGA;
@@ -78,18 +86,27 @@ void setup(){
     Serial.printf("Camera init failed with error 0x%x", err);
     return;
   }
-
-  // Connect to Wi-Fi
-  WiFi.disconnect();
-  WiFi.begin(SSID, password);
-  Serial.print("Connecting to WiFi");
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nWiFi connected!");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
+  // check the WiFI function 
+  // uint8_t res=WiFi.scanNetworks();
+  // if (res == 0) {
+  //   Serial.println("No networks found");
+  // } else {
+  //   Serial.printf("%d networks found\n", res);
+  //   for (int i = 0; i < res; ++i) {
+  //     Serial.printf("%d: %s (%d)\n", i + 1, WiFi.SSID(i).c_str(), WiFi.RSSI(i));
+  //   }
+  // }
+  // // Connect to Wi-Fi
+  // WiFi.disconnect();
+  // WiFi.begin(SSID, password);
+  // Serial.print("Connecting to WiFi");
+  // while (WiFi.status() != WL_CONNECTED) {
+  //   delay(500);
+  //   Serial.print(".");
+  // }
+  // Serial.println("\nWiFi connected!");
+  // Serial.print("IP address: ");
+  // Serial.println(WiFi.localIP());
 
   // Start streaming web server
   startCameraServer();
@@ -107,7 +124,11 @@ void loop(){
   //   delay(1000);
   // }
 
-  //digitalWrite(flashPin,HIGH);
+  digitalWrite(LEDPin,HIGH);
+  delay(1000);
+  digitalWrite(LEDPin,LOW);   
+  delay(1000);
+  getIMUData();
 
 }
 
